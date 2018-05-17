@@ -1,0 +1,4 @@
+# folders used in compilation and building
+logs
+target
+project/boot
