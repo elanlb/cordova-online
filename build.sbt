@@ -1,4 +1,4 @@
-name := """play-test-project"""
+name := """gphotos-tagger"""
 // organization := "com.example"
 
 version := "1.0-SNAPSHOT"
