@@ -2,3 +2,7 @@
 logs
 target
 project/boot
+.g8
+
+# intellij stuff
+.idea
