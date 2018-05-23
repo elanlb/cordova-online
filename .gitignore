@@ -6,3 +6,6 @@ project/boot
 
 # intellij stuff
 .idea
+
+# mac stuff
+.DS_Store

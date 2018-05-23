@@ -1,0 +1,14 @@
+@main("Login") {
+
+@* Google platform library *@
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<meta name="google-signin-client_id" content="951199836711-7gsvltao1f7b6kg2jqtu6mkqvsl0m5r9.apps.googleusercontent.com">
+
+} {
+
+<div class="container">
+	@* Google sign in button *@
+	<div class="g-signin2" data-onsuccess="onSignIn"></div>
+</div>
+
+}

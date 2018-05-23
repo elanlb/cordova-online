@@ -1,34 +1,56 @@
-@*
- * This template is called from the `index` template. This template
- * handles the rendering of the page header and body tags. It takes
- * two arguments, a `String` for the title of the page and an `Html`
- * object to insert into the body of the page.
- *@
-@(title: String)(content: Html)
+@* It takes two arguments, a `String` for the title of the page and
+ * an `Html` object to insert into the body of the page. *@
+
+
+@(title: String)(head: Html)(content: Html)
 
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        @* Here's where we render the page title `String`. *@
-        <title>@title</title>
+	<head>
+		@* Here's where we render the page title `String`. *@
+		<title>@title | GPhotos Tagger</title>
 
-	    @* Bootstrap CSS comes first, then our stylesheets and then the favicon *@
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+		@* Required meta tags *@
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <link rel="stylesheet" media="screen" href='@routes.Assets.versioned("stylesheets/main.css")'>
-        <link rel="shortcut icon" type="image/png" href='@routes.Assets.versioned("images/favicon.png")'>
+		@* Bootstrap CSS comes first, then our stylesheets and then the favicon *@
+		<link rel="stylesheet" media="screen" href='@routes.Assets.versioned("stylesheets/bootstrap.css")'>
 
-    </head>
-    <body>
-        @* And here's where we render the `Html` object containing
-         * the page content. *@
+		<link rel="stylesheet" media="screen" href='@routes.Assets.versioned("stylesheets/main.css")'>
+		<link rel="shortcut icon" type="image/png" href='@routes.Assets.versioned("images/favicon.png")'>
 
-        @content
+		@* Any other head tags come last *@
+		@head
 
-        <footer>
-            <h3>Please support us here!</h3>
-        </footer>
+	</head>
+	<body>
+		<nav class="navbar navbar-expand-lg navbar-light bg-light">
+			<a class="navbar-brand" href="/">GPhotos Tagger</a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse">
+				<span class="navbar-toggler-icon"></span>
+			</button>
 
-      <script src='@routes.Assets.versioned("javascripts/main.js")' type="text/javascript"></script>
-    </body>
+			<div class="collapse navbar-collapse">
+
+				<ul class="navbar-nav ml-auto">
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/elanlb/gphoto-tagger">GitHub</a>
+					</li>
+					<li class="nav-item">
+						<a href="/login">
+							<button class="btn btn-primary navbar-btn">Sign In</button>
+						</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+
+		<main role="main">
+			@* Content from the page will be inserted here *@
+			@content
+		</main>
+
+		<script src='@routes.Assets.versioned("javascripts/main.js")' type="text/javascript"></script>
+	</body>
 </html>

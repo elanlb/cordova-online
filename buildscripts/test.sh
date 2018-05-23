@@ -1,2 +1,3 @@
+#!/bin/bash
 sbt compile stage
-heroku local
+heroku local web
