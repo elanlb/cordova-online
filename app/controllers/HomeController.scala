@@ -12,7 +12,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
   /* There are two controllers here, one to open the main page and one for the about page.
    * More complicated pages like the sign in page have their own controllers. */
 
-  def index() = Action { implicit request: Request[AnyContent] =>
+  def index () = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.index())
   }
 }
