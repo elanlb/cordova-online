@@ -27,10 +27,10 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
     val tokenVerified = verifyToken(request)
 
     if (tokenVerified) {
-      Logger.debug("success!")
+      Logger.debug("Successfully authenticated")
     }
     else {
-      Logger.debug("fail")
+      Logger.debug("Authentication failed")
     }
 
     Ok(views.html.index())
