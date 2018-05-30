@@ -4,6 +4,9 @@ target
 project/boot
 .g8
 
+# used for running locally
+local
+
 # intellij stuff
 .idea
 

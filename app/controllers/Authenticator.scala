@@ -23,7 +23,7 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
   }
 
   def tokenSignIn () = Action { implicit request: Request[AnyContent] =>
-    // call the verifyToken fuction to verify the integrity of the token
+    // call the verifyToken function to verify the integrity of the token
     val tokenVerified = verifyToken(request)
 
     if (tokenVerified) {
@@ -61,6 +61,16 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
       // Print user identifier// Print user identifier
       val userId = payload.getSubject
       Logger.debug("User ID: " + userId)
+      // Get profile information from payload// Get profile information from payload
+
+      val email = payload.getEmail
+      val emailVerified = payload.getEmailVerified // boolean
+      // the next few entries are all strings
+      val name = payload.get("name")
+      val pictureUrl = payload.get("picture")
+      val locale = payload.get("locale")
+      val familyName = payload.get("family_name")
+      val givenName = payload.get("given_name")
 
       true
     }
