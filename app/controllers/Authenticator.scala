@@ -2,9 +2,10 @@ package controllers
 
 import scala.collection.JavaConverters._
 import javax.inject._
-import play.api._
+
 import play.api.mvc._
 import play.api.Logger
+import play.api.db._
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
@@ -17,27 +18,20 @@ import com.google.api.client.json.jackson2.JacksonFactory
 class Authenticator @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
   // load the login page when it is requested through 'routes'
-  def loginPage () = Action { implicit request: Request[AnyContent] =>
+  def loginPage() = Action { implicit request: Request[AnyContent] =>
 
     Ok(views.html.login())
   }
 
-  def tokenSignIn () = Action { implicit request: Request[AnyContent] =>
+  def tokenSignIn() = Action { implicit request: Request[AnyContent] =>
     // call the verifyToken function to verify the integrity of the token
-    val tokenVerified = verifyToken(request)
-
-    if (tokenVerified) {
-      Logger.debug("Successfully authenticated")
-    }
-    else {
-      Logger.debug("Authentication failed")
-    }
+    val idToken = getIdToken(request)
+    val userInfo = getUserInfo(idToken)
 
     Ok(views.html.index())
   }
 
-  // verify the integrity of the Google ID token
-  def verifyToken (request: Request[AnyContent]) : Boolean = {
+  def getIdToken(request: Request[AnyContent]): GoogleIdToken = {
     // get the oauth2 information from the environment variables
     val oauth2_client_id = System.getenv("OAUTH2_CLIENT_ID")
 
@@ -55,27 +49,46 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
     val idTokenString = request.body.asFormUrlEncoded.get("idtoken")
     val idToken = verifier.verify(idTokenString.mkString)
 
-    if (idToken != null) {
-      val payload = idToken.getPayload
-
-      // Print user identifier// Print user identifier
-      val userId = payload.getSubject
-      Logger.debug("User ID: " + userId)
-      // Get profile information from payload// Get profile information from payload
-
-      val email = payload.getEmail
-      val emailVerified = payload.getEmailVerified // boolean
-      // the next few entries are all strings
-      val name = payload.get("name")
-      val pictureUrl = payload.get("picture")
-      val locale = payload.get("locale")
-      val familyName = payload.get("family_name")
-      val givenName = payload.get("given_name")
-
-      true
+    // return the idToken to be used in the future (it is assumed to be verified)
+    if (Option(idToken).isDefined) {
+      Logger.debug("OAuth2 verification success")
     }
     else {
-      false
+      Logger.debug("OAuth2 verification failed")
     }
+
+    idToken
+  }
+
+  // verify the integrity of the Google ID token
+  def getUserInfo(idToken: GoogleIdToken): Map[String, String] = {
+    val payload = idToken.getPayload
+
+    // Print user identifier// Print user identifier
+    val userId = payload.getSubject
+    Logger.debug("User ID: " + userId)
+
+    // check if the email is verified
+    val emailVerified = payload.getEmailVerified
+    if (!emailVerified) Logger.debug("Email not verified")
+
+    // Get profile information from payload
+    val email = payload.getEmail
+    val name = payload.get("name").asInstanceOf[String]
+    val pictureUrl = payload.get("picture").asInstanceOf[String]
+    val locale = payload.get("locale").asInstanceOf[String]
+    val familyName = payload.get("family_name").asInstanceOf[String]
+    val givenName = payload.get("given_name").asInstanceOf[String]
+
+    val userInfo = Map(
+      "email" -> email,
+      "name" -> name,
+      "pictureUrl" -> pictureUrl,
+      "locale" -> locale,
+      "familyName" -> familyName,
+      "givenName" -> givenName
+    )
+
+    userInfo
   }
 }

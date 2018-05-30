@@ -9,10 +9,8 @@ import play.api.mvc._
 @Singleton
 class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
-  /* There are two controllers here, one to open the main page and one for the about page.
-   * More complicated pages like the sign in page have their own controllers. */
-
-  def index () = Action { implicit request: Request[AnyContent] =>
+  /* a basic controller to serve the index page */
+  def index() = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.index())
   }
 }
