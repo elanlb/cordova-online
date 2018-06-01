@@ -2,15 +2,14 @@ package controllers
 
 import scala.collection.JavaConverters._
 import javax.inject._
-
 import play.api.mvc._
 import play.api.Logger
-import play.api.db._
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
+
 
 /* This controller loads the login page when it is requested and handles other sign in tasks */
 
@@ -24,11 +23,12 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
   }
 
   def tokenSignIn() = Action { implicit request: Request[AnyContent] =>
-    // call the verifyToken function to verify the integrity of the token
-    val idToken = getIdToken(request)
-    val userInfo = getUserInfo(idToken)
+    val idToken = getIdToken(request) // verify the integrity of the token
+    val userInfo = getUserInfo(idToken) // get the userInfo with the token
+    loginToDatabase(userInfo) // check if the user has logged in already
 
-    Ok(views.html.index())
+    // set a session variable (cookie) with the action for the other pages to use
+    Ok(views.html.index()).withSession("userId" -> userInfo("userId"))
   }
 
   def getIdToken(request: Request[AnyContent]): GoogleIdToken = {
@@ -74,21 +74,52 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
 
     // Get profile information from payload
     val email = payload.getEmail
-    val name = payload.get("name").asInstanceOf[String]
-    val pictureUrl = payload.get("picture").asInstanceOf[String]
-    val locale = payload.get("locale").asInstanceOf[String]
-    val familyName = payload.get("family_name").asInstanceOf[String]
-    val givenName = payload.get("given_name").asInstanceOf[String]
+    val name = payload.get("name").toString
+    val pictureUrl = payload.get("picture").toString
+    //val locale = payload.get("locale").toString
+    //val familyName = payload.get("family_name").toString
+    //val givenName = payload.get("given_name").toString
 
+    // put all of this information into a map to be returned
     val userInfo = Map(
+      "userId" -> userId,
       "email" -> email,
       "name" -> name,
-      "pictureUrl" -> pictureUrl,
-      "locale" -> locale,
-      "familyName" -> familyName,
-      "givenName" -> givenName
+      "pictureUrl" -> pictureUrl
     )
 
+    Logger.debug(userInfo("name"))
+
     userInfo
+  }
+
+  def loginToDatabase(userInfo: Map[String, String]): Unit = {
+
+    val userId = userInfo("userId")
+    val resultSet = DatabaseInterface.query(s"SELECT * FROM users WHERE userid='$userId'").get
+
+    if (resultSet != null) {
+      if (resultSet.next) {
+        resultSet.beforeFirst() // reset the resultSet selection
+        Logger.debug(resultSet.getString("name") + " has already logged in")
+        // update the user's profile picture, just in case it was changed since they last logged in
+        val pictureUrl = userInfo("pictureUrl")
+        DatabaseInterface.query(s"UPDATE users SET pictureurl = '$pictureUrl'")
+
+        // the login was successful
+      }
+      else {
+        // add a new user to the table
+        // get the user information values
+        val email = userInfo("email")
+        val name = userInfo("name")
+        val pictureUrl = userInfo("pictureUrl")
+
+        // execute the query
+        DatabaseInterface.query("INSERT INTO users (userid, email, name, pictureurl) " +
+          s"VALUES ('$userId', '$email', '$name', '$pictureUrl')")
+      }
+    }
+    else Logger.debug("Failed to get a result set")
   }
 }
