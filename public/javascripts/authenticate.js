@@ -1,6 +1,6 @@
 // get the user's token after they sign in
 function onSignIn (googleUser) {
-    console.log("HELLO");
+    console.log("OnSuccess");
 
     var id_token = googleUser.getAuthResponse().id_token;
 
