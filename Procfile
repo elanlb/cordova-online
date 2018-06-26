@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/gphotos-tagger -Dhttp.port=${PORT}
+web: target/universal/stage/bin/super-inbox -Dhttp.port=${PORT}

@@ -1,11 +1,13 @@
 // get the user's token after they sign in
 function onSignIn (googleUser) {
-	var id_token = googleUser.getAuthResponse().id_token;
+    console.log("HELLO");
 
-	// send the token to the server with an HTTPS POST request
+    var id_token = googleUser.getAuthResponse().id_token;
+
+    // send the token to the server with an HTTPS POST request
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'https://localhost:5000/tokensignin');
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.open("POST", "https://localhost:5000/tokensignin");
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.onload = function () {
     	console.log('Signed in as: ' + xhr.responseText);
     };

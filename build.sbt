@@ -1,4 +1,4 @@
-name := """gphotos-tagger"""
+name := """super-inbox"""
 // organization := "com.example"
 
 version := "1.0-SNAPSHOT"

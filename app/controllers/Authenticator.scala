@@ -2,6 +2,7 @@ package controllers
 
 import scala.collection.JavaConverters._
 import javax.inject._
+import play.api.db._
 import play.api.mvc._
 import play.api.Logger
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
@@ -14,7 +15,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 /* This controller loads the login page when it is requested and handles other sign in tasks */
 
 @Singleton
-class Authenticator @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends AbstractController(cc) {
 
   // load the login page when it is requested through 'routes'
   def loginPage() = Action { implicit request: Request[AnyContent] =>
@@ -22,6 +23,7 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
     Ok(views.html.login())
   }
 
+  // this gets called by OAuth2
   def tokenSignIn() = Action { implicit request: Request[AnyContent] =>
     val idToken = getIdToken(request) // verify the integrity of the token
     val userInfo = getUserInfo(idToken) // get the userInfo with the token
@@ -31,6 +33,7 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
     Ok(views.html.index()).withSession("userId" -> userInfo("userId"))
   }
 
+  // called by tokenSignIn by Google
   def getIdToken(request: Request[AnyContent]): GoogleIdToken = {
     // get the oauth2 information from the environment variables
     val oauth2_client_id = System.getenv("OAUTH2_CLIENT_ID")
@@ -60,7 +63,7 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
     idToken
   }
 
-  // verify the integrity of the Google ID token
+  // verify the integrity of the Google ID token and return user info
   def getUserInfo(idToken: GoogleIdToken): Map[String, String] = {
     val payload = idToken.getPayload
 
@@ -94,17 +97,18 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
   }
 
   def loginToDatabase(userInfo: Map[String, String]): Unit = {
+    // connect to the database and log in the user
+    db.withConnection{conn =>
+      // check if the user is already logged in (will return true if anything is returned)
+      val userId = userInfo("userId")
+      val resultSet = conn.createStatement.execute(s"""SELECT * FROM users WHERE user_id is "$userId" """)
 
-    val userId = userInfo("userId")
-    val resultSet = DatabaseInterface.query(s"SELECT * FROM users WHERE userid='$userId'").get
+      if (resultSet) {
+        Logger.debug(userInfo("name") + " has already logged in")
 
-    if (resultSet != null) {
-      if (resultSet.next) {
-        resultSet.beforeFirst() // reset the resultSet selection
-        Logger.debug(resultSet.getString("name") + " has already logged in")
         // update the user's profile picture, just in case it was changed since they last logged in
         val pictureUrl = userInfo("pictureUrl")
-        DatabaseInterface.query(s"UPDATE users SET pictureurl = '$pictureUrl'")
+        conn.createStatement.executeUpdate(s"""UPDATE users SET picture_url="$pictureUrl" """)
 
         // the login was successful
       }
@@ -116,10 +120,10 @@ class Authenticator @Inject()(cc: ControllerComponents) extends AbstractControll
         val pictureUrl = userInfo("pictureUrl")
 
         // execute the query
-        DatabaseInterface.query("INSERT INTO users (userid, email, name, pictureurl) " +
-          s"VALUES ('$userId', '$email', '$name', '$pictureUrl')")
+        conn.createStatement.executeUpdate(
+          s"""INSERT INTO users (user_id, email, name, picture_url) VALUES ("$userId", "$email", "$name", "$pictureUrl") """
+        )
       }
     }
-    else Logger.debug("Failed to get a result set")
   }
 }
