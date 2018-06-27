@@ -23,14 +23,22 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
     Ok(views.html.login())
   }
 
-  // this gets called by OAuth2
+  // this gets called by google's OAuth2
   def tokenSignIn() = Action { implicit request: Request[AnyContent] =>
     val idToken = getIdToken(request) // verify the integrity of the token
     val userInfo = getUserInfo(idToken) // get the userInfo with the token
     loginToDatabase(userInfo) // check if the user has logged in already
 
-    // set a session variable (cookie) with the action for the other pages to use
-    Ok(views.html.index()).withSession("userId" -> userInfo("userId"))
+    // set the user's ip in the database so that it carries over to other pages
+    val userId = userInfo("userId")
+    val remoteIp = request.remoteAddress // get the ip coming from the request
+
+    db.withConnection{conn =>
+      conn.createStatement.executeUpdate(
+        s"UPDATE users SET ip = '$remoteIp' WHERE user_id = '$userId';"
+      )
+    }
+    Redirect("/") // send them to the home page
   }
 
   // called by tokenSignIn by Google
@@ -53,10 +61,7 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
     val idToken = verifier.verify(idTokenString.mkString)
 
     // return the idToken to be used in the future (it is assumed to be verified)
-    if (Option(idToken).isDefined) {
-      Logger.debug("OAuth2 verification success")
-    }
-    else {
+    if (Option(idToken).isEmpty) {
       Logger.debug("OAuth2 verification failed")
     }
 
@@ -67,9 +72,7 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
   def getUserInfo(idToken: GoogleIdToken): Map[String, String] = {
     val payload = idToken.getPayload
 
-    // Print user identifier// Print user identifier
-    val userId = payload.getSubject
-    Logger.debug("User ID: " + userId)
+    val userId = payload.getSubject // get user identifier
 
     // check if the email is verified
     val emailVerified = payload.getEmailVerified
@@ -79,9 +82,12 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
     val email = payload.getEmail
     val name = payload.get("name").toString
     val pictureUrl = payload.get("picture").toString
-    //val locale = payload.get("locale").toString
-    //val familyName = payload.get("family_name").toString
-    //val givenName = payload.get("given_name").toString
+
+    /* Extra values for I don't know what
+    val locale = payload.get("locale").toString
+    val familyName = payload.get("family_name").toString
+    val givenName = payload.get("given_name").toString
+    */
 
     // put all of this information into a map to be returned
     val userInfo = Map(
@@ -91,28 +97,29 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
       "pictureUrl" -> pictureUrl
     )
 
-    Logger.debug(userInfo("name"))
-
     userInfo
   }
 
   def loginToDatabase(userInfo: Map[String, String]): Unit = {
     // connect to the database and log in the user
     db.withConnection{conn =>
-      // check if the user is already logged in (will return true if anything is returned)
+      // select the user with a matching user id
       val userId = userInfo("userId")
-      val resultSet = conn.createStatement.execute(s"""SELECT * FROM users WHERE user_id is "$userId" """)
+      val resultSet = conn.createStatement.executeQuery(s"SELECT * FROM users WHERE user_id = '$userId';")
 
-      if (resultSet) {
+      // check if anything was returned (person has already logged in)
+      if (resultSet.isBeforeFirst) {
         Logger.debug(userInfo("name") + " has already logged in")
 
-        // update the user's profile picture, just in case it was changed since they last logged in
+        // update the user's profile picture because it may have changed
         val pictureUrl = userInfo("pictureUrl")
-        conn.createStatement.executeUpdate(s"""UPDATE users SET picture_url="$pictureUrl" """)
+        conn.createStatement.executeUpdate(s"UPDATE users SET picture_url = '$pictureUrl';")
 
         // the login was successful
       }
       else {
+        Logger.debug("Creating a new account for " + userInfo("name"))
+
         // add a new user to the table
         // get the user information values
         val email = userInfo("email")
@@ -121,9 +128,9 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
 
         // execute the query
         conn.createStatement.executeUpdate(
-          s"""INSERT INTO users (user_id, email, name, picture_url) VALUES ("$userId", "$email", "$name", "$pictureUrl") """
+          s"INSERT INTO users (user_id, email, name, picture_url) VALUES ('$userId', '$email', '$name', '$pictureUrl');"
         )
       }
-    }
+    } // close the connection
   }
 }
