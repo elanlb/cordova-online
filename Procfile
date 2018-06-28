@@ -1,1 +1,2 @@
-web: target/universal/stage/bin/super-inbox
+web: target/universal/stage/bin/super-inbox -Dhttp.port=${PORT}
+
