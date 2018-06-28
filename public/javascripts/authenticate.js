@@ -6,7 +6,7 @@ function onSignIn (googleUser) {
 
     // send the token to the server with an HTTPS POST request
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://localhost:5000/tokensignin");
+    xhr.open("POST", "/tokensignin");
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.onload = function () {
     	console.log('Signed in as: ' + xhr.responseText);

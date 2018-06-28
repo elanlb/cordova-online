@@ -62,7 +62,7 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
 
     // return the idToken to be used in the future (it is assumed to be verified)
     if (Option(idToken).isEmpty) {
-      Logger.debug("OAuth2 verification failed")
+      Logger.info("OAuth2 verification failed")
     }
 
     idToken
@@ -76,7 +76,7 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
 
     // check if the email is verified
     val emailVerified = payload.getEmailVerified
-    if (!emailVerified) Logger.debug("Email not verified")
+    if (!emailVerified) Logger.info("Email not verified")
 
     // Get profile information from payload
     val email = payload.getEmail
@@ -109,7 +109,7 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
 
       // check if anything was returned (person has already logged in)
       if (resultSet.isBeforeFirst) {
-        Logger.debug(userInfo("name") + " has already logged in")
+        Logger.info(userInfo("name") + " has already logged in")
 
         // update the user's profile picture because it may have changed
         val pictureUrl = userInfo("pictureUrl")
@@ -118,7 +118,7 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
         // the login was successful
       }
       else {
-        Logger.debug("Creating a new account for " + userInfo("name"))
+        Logger.info("Creating a new account for " + userInfo("name"))
 
         // add a new user to the table
         // get the user information values
