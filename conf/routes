@@ -6,6 +6,7 @@
 # Index and login pages
 GET     /                           controllers.HomeController.index
 GET     /login                      controllers.Authenticator.loginPage
+GET     /inbox                      controllers.InboxController.inbox
 
 POST    /tokensignin                controllers.Authenticator.tokenSignIn
 
