@@ -13,8 +13,29 @@
 	<h1>Sign in with your 'main' account</h1>
 	<p>You will sign in with this account every time to get your mail.</p>
 
-	@* Google sign in button *@
-	<div class="g-signin2" data-onsuccess="onSignIn"></div>
+	<form>
+		<div class="form-group row">
+			@* Google sign in button *@
+			<div class="g-signin2" data-onsuccess="onSignIn"></div>
+		</div>
+
+		@* Display the user's info in this readonly form *@
+		<div class="form-group row">
+			<label for="staticEmail" class="col-sm-2 col-form-label">Email</label>
+			<div class="col-sm-10">
+				<input type="text" readonly class="form-control-plaintext" id="staticEmail">
+			</div>
+		</div>
+		<div class="form-group row">
+			<label for="staticName" class="col-sm-2 col-form-label">Name</label>
+			<div class="col-sm-10">
+				<input type="text" readonly class="form-control-plaintext" id="staticName">
+			</div>
+		</div>
+		<div class="form-group row">
+			<button class="btn btn-primary" onclick="signIn()">Sign In</button>
+		</div>
+	</form>
 </div>
 
 }

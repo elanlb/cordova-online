@@ -19,8 +19,20 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
 
   // load the login page when it is requested through 'routes'
   def loginPage() = Action { implicit request: Request[AnyContent] =>
-
     Ok(views.html.login())
+  }
+
+  // logout the user and send them to the logout page
+  def logoutPage() = Action { implicit request: Request[AnyContent] =>
+    val remoteIp = request.remoteAddress // get the remote ip
+
+    db.withConnection{conn =>
+      conn.createStatement().executeUpdate(
+        s"UPDATE users SET ip = null WHERE ip = '$remoteIp'" // remove their ip session
+      )
+    }
+
+    Ok(views.html.logout()) // user has been successfully logged out
   }
 
   // this gets called by google's OAuth2
