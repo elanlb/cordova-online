@@ -1,7 +1,8 @@
 # folders used in compilation and building
 logs
 target
-project/boot
+project/target
+project/project
 .g8
 
 # used for running locally

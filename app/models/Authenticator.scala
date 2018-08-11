@@ -1,56 +1,35 @@
-package controllers
+package models
 
 import scala.collection.JavaConverters._
-import javax.inject._
-import play.api.db._
-import play.api.mvc._
-import play.api.Logger
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
+import play.api.Logger
+import play.api.db._
+import play.api.mvc._
 
+object Authenticator {
 
-/* This controller loads the login page when it is requested and handles other sign in tasks */
+  // use this function to check if the user is logged in (through cookies)
+  def verifyUserIdSession(db: Database, session: Session): Boolean = {
+    session.get("userId").map { userId =>
 
-@Singleton
-class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends AbstractController(cc) {
+      db.withConnection { conn =>
+        // get the name then check if it's empty or not
+        val resultSet = conn.createStatement().executeQuery(s"SELECT * FROM users WHERE user_id = '$userId';")
 
-  // load the login page when it is requested through 'routes'
-  def loginPage() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.login())
-  }
+        resultSet.next() // go to the first entry
+        if (resultSet.getString("name").isEmpty) {
+          return false // invalid userid
+        } else {
+          return true // valid user
+        }
+      } // close connection
 
-  // logout the user and send them to the logout page
-  def logoutPage() = Action { implicit request: Request[AnyContent] =>
-    val remoteIp = request.remoteAddress // get the remote ip
-
-    db.withConnection{conn =>
-      conn.createStatement().executeUpdate(
-        s"UPDATE users SET ip = null WHERE ip = '$remoteIp'" // remove their ip session
-      )
+    }.getOrElse {
+      return false // user ID doesn't exist
     }
-
-    Ok(views.html.logout()) // user has been successfully logged out
-  }
-
-  // this gets called by google's OAuth2
-  def tokenSignIn() = Action { implicit request: Request[AnyContent] =>
-    val idToken = getIdToken(request) // verify the integrity of the token
-    val userInfo = getUserInfo(idToken) // get the userInfo with the token
-    loginToDatabase(userInfo) // check if the user has logged in already
-
-    // set the user's ip in the database so that it carries over to other pages
-    val userId = userInfo("userId")
-    val remoteIp = request.remoteAddress // get the ip coming from the request
-
-    db.withConnection{conn =>
-      conn.createStatement.executeUpdate(
-        s"UPDATE users SET ip = '$remoteIp' WHERE user_id = '$userId';"
-      )
-    }
-    Redirect("/") // send them to the home page
   }
 
   // called by tokenSignIn by Google
@@ -86,10 +65,6 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
 
     val userId = payload.getSubject // get user identifier
 
-    // check if the email is verified
-    val emailVerified = payload.getEmailVerified
-    if (!emailVerified) Logger.info("Email not verified")
-
     // Get profile information from payload
     val email = payload.getEmail
     val name = payload.get("name").toString
@@ -100,6 +75,10 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
     val familyName = payload.get("family_name").toString
     val givenName = payload.get("given_name").toString
     */
+
+    // check if the email is verified
+    val emailVerified = payload.getEmailVerified
+    if (!emailVerified) Logger.warn(s"Email not verified ($email)")
 
     // put all of this information into a map to be returned
     val userInfo = Map(
@@ -112,25 +91,23 @@ class Authenticator @Inject()(db: Database, cc: ControllerComponents) extends Ab
     userInfo
   }
 
-  def loginToDatabase(userInfo: Map[String, String]): Unit = {
+  def loginToDatabase(db: Database, userInfo: Map[String, String]): Unit = {
     // connect to the database and log in the user
-    db.withConnection{conn =>
+    db.withConnection { conn =>
       // select the user with a matching user id
       val userId = userInfo("userId")
       val resultSet = conn.createStatement.executeQuery(s"SELECT * FROM users WHERE user_id = '$userId';")
 
       // check if anything was returned (person has already logged in)
       if (resultSet.isBeforeFirst) {
-        Logger.info(userInfo("name") + " has already logged in")
 
         // update the user's profile picture because it may have changed
         val pictureUrl = userInfo("pictureUrl")
         conn.createStatement.executeUpdate(s"UPDATE users SET picture_url = '$pictureUrl';")
 
         // the login was successful
-      }
-      else {
-        Logger.info("Creating a new account for " + userInfo("name"))
+
+      } else {
 
         // add a new user to the table
         // get the user information values
