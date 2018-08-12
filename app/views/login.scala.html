@@ -14,10 +14,8 @@
 	<p>You will sign in with this account every time to get your mail.</p>
 
 	<form>
-		<div class="form-group row">
-			@* Google sign in button *@
-			<div class="g-signin2" data-onsuccess="onSignIn"></div>
-		</div>
+		@* Google sign in button *@
+		<div class="g-signin2" data-onsuccess="onSignIn"></div>
 
 		@* Display the user's info in this readonly form *@
 		<div class="form-group row">
@@ -32,9 +30,8 @@
 				<input class="form-control" type="text" readonly id="staticName">
 			</div>
 		</div>
-		<div class="form-group row">
-			<p class="btn btn-primary" onclick="signIn()">Sign In</p>
-		</div>
+
+		<p class="btn btn-primary" onclick="signIn()">Sign In</p>
 	</form>
 </div>
 

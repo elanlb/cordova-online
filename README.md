@@ -1,5 +1,7 @@
 # Super Inbox
 
+[![Build Status](https://travis-ci.org/elanlb/super-inbox.svg?branch=master)](https://travis-ci.org/elanlb/super-inbox)
+
 Super Inbox is a webapp built with Play Framework and Scala to access mail from different email accounts in one place.
 
 ## How to use

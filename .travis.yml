@@ -1,0 +1,9 @@
+language: scala
+
+jdk:
+- oraclejdk10
+scala:
+- 2.12.4
+
+script:
+- sbt compile stage

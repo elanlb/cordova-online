@@ -1,4 +1,4 @@
-name := """super-inbox"""
+name := """Super Inbox"""
 // organization := "com.example"
 
 version := "1.0-SNAPSHOT"
@@ -7,10 +7,10 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.12.4"
 
-libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.0"
 
 libraryDependencies += guice
-libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
+// https://mvnrepository.com/artifact/org.scalatestplus.play/scalatestplus-play_2.11
+libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.0-M2" % Test
 
 libraryDependencies ++= Seq(
   jdbc,

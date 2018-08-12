@@ -3,7 +3,6 @@ logs
 target
 project/target
 project/project
-.g8
 
 # used for running locally
 local
