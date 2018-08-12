@@ -16,7 +16,7 @@ class InboxController @Inject()(db: Database, cc: ControllerComponents) extends 
     val verified = Authenticator.verifyUserIdSession(db, request.session) // verify that the user id valid
 
     if (verified) {
-      InternalServerError("Page in progress") // success
+      Ok("Inbox Page") // success
     } else {
       Redirect("/login")
     }

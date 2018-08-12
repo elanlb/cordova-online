@@ -15,12 +15,14 @@ class LoginController @Inject()(db: Database, cc: ControllerComponents) extends 
   def accountPage() = Action { implicit request: Request[AnyContent] =>
     val verified = Authenticator.verifyUserIdSession(db, request.session)
     if (!verified) Redirect("/login")
-    else InternalServerError("Account Page")
+    else Ok("Account Page")
   }
 
   // load the login page when it is requested
   def loginPage() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.login())
+    val verified = Authenticator.verifyUserIdSession(db, request.session)
+    if (verified) Redirect("/inbox") // send them to the inbox if they're logged in
+    else Ok(views.html.login())
   }
 
   // logout the user and send them to the logout page
