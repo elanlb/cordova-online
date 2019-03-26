@@ -1,2 +1,2 @@
-web: target/universal/stage/bin/super-inbox -Dhttp.port=${PORT}
+web: target/universal/stage/bin/cordova-online -Dhttp.port=${PORT}
 

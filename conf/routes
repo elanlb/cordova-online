@@ -8,7 +8,6 @@ GET     /                           controllers.HomeController.index
 GET     /account                    controllers.LoginController.accountPage
 GET     /login                      controllers.LoginController.loginPage
 GET     /logout                     controllers.LoginController.logoutPage
-GET     /inbox                      controllers.InboxController.inbox
 
 POST    /tokensignin                controllers.LoginController.tokenSignIn
 

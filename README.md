@@ -1,15 +1,4 @@
-# Super Inbox
-
-[![Build Status](https://travis-ci.org/elanlb/super-inbox.svg?branch=master)](https://travis-ci.org/elanlb/super-inbox)
-
-Super Inbox is a webapp built with Play Framework and Scala to access mail from different email accounts in one place.
-
-## How to use
-This app is hosted on Heroku so that you don't have to set it up yourself. Just sign in with your Google account to get
-started.
-
-## How it works
-Stuff happens.
+# Cordova Online
 
 ## Running locally
 This app can be run locally with the Heroku CLI. The Procfile must be edited for it to run correctly without a verified

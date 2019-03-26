@@ -1,4 +1,4 @@
-name := """Super Inbox"""
+name := """Cordova Online"""
 // organization := "com.example"
 
 version := "1.0-SNAPSHOT"
