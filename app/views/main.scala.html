@@ -1,21 +1,21 @@
-@* It takes two arguments, a `String` for the title of the page and
- * an `Html` object to insert into the body of the page. *@
+@* For allowing specific inline code to be run *@
+@* The parameter is below *@
+@import views.html.helper.CSPNonce
 
-
-@(title: String)(head: Html)(content: Html)
+@(title: String)(head: Html)(content: Html)(implicit requestHeader: RequestHeader)
 
 <!DOCTYPE html>
 <html lang="en">
 	<head>
 		@* Here's where we render the page title `String`. *@
-		<title>@title | Super Inbox</title>
+		<title>@title | Cordova Online</title>
 
 		@* Required meta tags *@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
 		@* Bootstrap CSS comes first, then our stylesheets and then the favicon *@
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+		<link rel="stylesheet" href='@routes.Assets.versioned("stylesheets/bootstrap.min.css")'>
 
 		<link rel="stylesheet" href='@routes.Assets.versioned("stylesheets/main.css")'>
 		<link rel="shortcut icon" type="image/png" href='@routes.Assets.versioned("images/favicon.png")'>
@@ -25,8 +25,9 @@
 
 	</head>
 	<body>
+		@* Bootstrap navbar *@
 		<nav class="navbar navbar-expand-lg navbar-light bg-light">
-			<a class="navbar-brand" href="/">Super Inbox</a>
+			<a class="navbar-brand" href="/">Cordova Online</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
 				<span class="navbar-toggler-icon"></span>
 			</button>
@@ -51,8 +52,7 @@
 			@content
 		</main>
 
-		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+		@* JQuery code *@
+		<script src='@routes.Assets.versioned("javascripts/jquery-3.3.1.min.js")' @{CSPNonce.attr}></script>
 	</body>
 </html>

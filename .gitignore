@@ -1,11 +1,11 @@
 # folders used in compilation and building
 logs
 target
-#project/target
+project/target
 project/project
 
 # used for running locally
-local
+local/secret
 
 # intellij stuff
 .idea

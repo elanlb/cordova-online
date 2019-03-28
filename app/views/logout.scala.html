@@ -1,3 +1,8 @@
+@* For allowing specific inline code to be run *@
+@* The parameter is below *@
+@* @import views.html.helper.CSPNonce *@
+@(implicit requestHeader: RequestHeader)
+
 @main("Logout") {
 
 @* No head content *@
@@ -10,4 +15,4 @@
 	<p><a href="/">Home</a></p>
 </div>
 
-}
+} (requestHeader)

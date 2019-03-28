@@ -1,4 +1,4 @@
-package models
+package utilities
 
 import scala.collection.JavaConverters._
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
@@ -6,18 +6,20 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import play.api.Logger
-import play.api.db._
-import play.api.mvc._
+import play.api.db.Database
+import play.api.mvc.Session
 
-object Authenticator {
+class Authenticator (db: Database) {
 
   // use this function to check if the user is logged in (through cookies)
-  def verifyUserIdSession(db: Database, session: Session): Boolean = {
+  def verifyUserIdSession(session: Session): Boolean = {
     session.get("userId").map { userId =>
 
       db.withConnection { conn =>
         // get the name then check if it's empty or not
-        val resultSet = conn.createStatement().executeQuery(s"SELECT * FROM users WHERE user_id = '$userId';")
+        val preparedStatement = conn.prepareStatement("SELECT * FROM users WHERE user_id = '?';")
+        preparedStatement.setString(1, userId)
+        val resultSet = preparedStatement.executeQuery()
 
         resultSet.next() // go to the first entry
         if (resultSet.getString("name").isEmpty) {
@@ -32,8 +34,8 @@ object Authenticator {
     }
   }
 
-  // called by tokenSignIn by Google
-  def getIdToken(request: Request[AnyContent]): GoogleIdToken = {
+  // called by tokenSignIn which is requested by Google
+  def getIdToken(idTokenString: String): GoogleIdToken = {
     // get the oauth2 information from the environment variables
     val oauth2_client_id = System.getenv("OAUTH2_CLIENT_ID")
 
@@ -48,8 +50,7 @@ object Authenticator {
       .build()
 
     // (Receive idTokenString by HTTPS POST)
-    val idTokenString = request.body.asFormUrlEncoded.get("idtoken")
-    val idToken = verifier.verify(idTokenString.mkString)
+    val idToken = verifier.verify(idTokenString)
 
     // return the idToken to be used in the future (it is assumed to be verified)
     if (Option(idToken).isEmpty) {
@@ -91,7 +92,7 @@ object Authenticator {
     userInfo
   }
 
-  def loginToDatabase(db: Database, userInfo: Map[String, String]): Unit = {
+  def loginToDatabase(userInfo: Map[String, String]): Unit = {
     // connect to the database and log in the user
     db.withConnection { conn =>
       // select the user with a matching user id

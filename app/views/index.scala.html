@@ -1,3 +1,8 @@
+@* For allowing specific inline code to be run *@
+@* The parameter is below *@
+@* @import views.html.helper.CSPNonce *@
+@(implicit requestHeader: RequestHeader)
+
 @main("Home") {
 
 @* No head html to add *@
@@ -30,4 +35,4 @@
 	</div>
 </div>
 
-}
+} (requestHeader)

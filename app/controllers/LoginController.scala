@@ -1,42 +1,44 @@
 package controllers
 
 import javax.inject._
-import play.api.db._
-import play.api.mvc._
-import models.Authenticator
+import play.api.db.Database
+import play.api.mvc.{ControllerComponents, AbstractController, Request, AnyContent, RequestHeader}
+import utilities.Authenticator
 
 
 /* This controller loads the login page when it is requested and handles other sign in tasks */
 
 @Singleton
 class LoginController @Inject()(db: Database, cc: ControllerComponents) extends AbstractController(cc) {
+  val authenticator = new Authenticator(db) // this is used for accessing the database
 
   // load the account page if they are logged in
   def accountPage() = Action { implicit request: Request[AnyContent] =>
-    val verified = Authenticator.verifyUserIdSession(db, request.session)
+    val verified = authenticator.verifyUserIdSession(request.session)
     if (!verified) Redirect("/login")
     else Ok("Account Page")
   }
 
   // load the login page when it is requested
   def loginPage() = Action { implicit request: Request[AnyContent] =>
-    val verified = Authenticator.verifyUserIdSession(db, request.session)
+    val verified = authenticator.verifyUserIdSession(request.session)
     if (verified) Redirect("/inbox") // send them to the inbox if they're logged in
-    else Ok(views.html.login())
+    else Ok(views.html.login(request))
   }
 
   // logout the user and send them to the logout page
   def logoutPage() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.logout()).withSession(
+    Ok(views.html.logout(request)).withSession(
       request.session - "userId"
     ) // user has been successfully logged out
   }
 
-  // this gets called by google's OAuth2
+  // this gets called by google's OAuth2 POST
   def tokenSignIn() = Action { implicit request: Request[AnyContent] =>
-    val idToken = Authenticator.getIdToken(request) // verify the integrity of the token
-    val userInfo = Authenticator.getUserInfo(idToken) // get the userInfo with the token
-    Authenticator.loginToDatabase(db, userInfo) // check if the user has logged in already
+    val requestIterator = request.body.asFormUrlEncoded.get("idtoken")
+    val idToken = authenticator.getIdToken(requestIterator.mkString) // verify the integrity of the token
+    val userInfo = authenticator.getUserInfo(idToken) // get the userInfo with the token
+    authenticator.loginToDatabase(userInfo) // check if the user has logged in already
 
     // get the user id from the user info
     val userId = userInfo("userId")
